@@ -23,9 +23,9 @@
 
 # ---------------------------------------------------------------------------------------------------------
 # Documentation References:
-# Associated Article - https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-python
+# Associated Article - https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-ruby
 # What is a Storage Account - http://azure.microsoft.com/en-us/documentation/articles/storage-whatis-account/
-# Getting Started with Blobs-https://docs.microsoft.com/en-us/azure/storage/blobs/storage-python-how-to-use-blob-storage
+# Getting Started with Blobs-https://docs.microsoft.com/en-us/azure/storage/blobs/storage-ruby-how-to-use-blob-storage
 # Blob Service Concepts - http://msdn.microsoft.com/en-us/library/dd179376.aspx
 # Blob Service REST API - http://msdn.microsoft.com/en-us/library/dd135733.aspx
 # ----------------------------------------------------------------------------------------------------------
