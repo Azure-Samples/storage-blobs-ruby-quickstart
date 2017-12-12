@@ -56,7 +56,7 @@ def run_sample
           )
 
         # Create the BlobService that is used to call the Blob service for the storage account
-        blob_service = Azure::Storage::Blob::BlobService.new(client: client)
+        blob_service = client.blob_client
         
         # Create a container called 'quickstartblobs'.
         container_name = 'quickstartblobs'
