@@ -24,10 +24,10 @@
 # ---------------------------------------------------------------------------------------------------------
 # Documentation References:
 # Associated Article - https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-ruby
-# What is a Storage Account - http://azure.microsoft.com/en-us/documentation/articles/storage-whatis-account/
+# What is a Storage Account - https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account
 # Getting Started with Blobs-https://docs.microsoft.com/en-us/azure/storage/blobs/storage-ruby-how-to-use-blob-storage
-# Blob Service Concepts - http://msdn.microsoft.com/en-us/library/dd179376.aspx
-# Blob Service REST API - http://msdn.microsoft.com/en-us/library/dd135733.aspx
+# Blob Service Concepts - https://docs.microsoft.com/en-us/rest/api/storageservices/Blob-Service-Concepts
+# Blob Service REST API - https://docs.microsoft.com/en-us/rest/api/storageservices/Blob-Service-REST-API
 # ----------------------------------------------------------------------------------------------------------
 
 require 'openssl'
@@ -45,7 +45,7 @@ $stdout.sync = true
 # lists the blobs in the container, and downloads the file with a new name.
 def run_sample
     account_name = 'accountname'   
-    account_key= 'accountkey'
+    account_key = 'accountkey'
     
     begin
 
@@ -59,16 +59,16 @@ def run_sample
         blob_service = Azure::Storage::Blob::BlobService.new(client: client)
         
         # Create a container called 'quickstartblobs'.
-        container_name ='quickstartblobs'
+        container_name = 'quickstartblobs'
         container = blob_service.create_container(container_name)   
         
         # Set the permission so the blobs are public.
         blob_service.set_container_acl(container_name, "container")
 
         # Create a file in Documents to test the upload and download.
-        local_path=File.expand_path("~/Documents")
-        local_file_name ="QuickStart_" + SecureRandom.uuid + ".txt"
-        full_path_to_file =File.join(local_path, local_file_name)
+        local_path = File.expand_path("~/Documents")
+        local_file_name = "QuickStart_" + SecureRandom.uuid + ".txt"
+        full_path_to_file = File.join(local_path, local_file_name)
 
         # Write text to the file.
         file = File.open(full_path_to_file,  'w')
@@ -96,8 +96,7 @@ def run_sample
         blob, content = blob_service.get_blob(container_name,local_file_name)
         File.open(full_path_to_file2,"wb") {|f| f.write(content)}
 
-        puts "Sample finished running. When you hit <any key>, the sample will be deleted and the sample "
-                         "application will exit."      
+        puts "Sample finished running. Hit <any key>, to delete resources created by the sample and exit the application"
         readline()
 
         # Clean up resources. This includes the container and the temp files

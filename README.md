@@ -50,3 +50,9 @@ In the application, you must provide your storage account name and account key t
 ```ruby
 client = Azure::Storage.client(storage_account_name: account_name, storage_access_key: account_key)
 ```
+
+To run the application on a terminal or command prompt, Go to the `example.rb` file directory and run the following command: 
+
+```
+ruby example.rb
+```
