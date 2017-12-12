@@ -55,7 +55,7 @@ def run_sample
             storage_access_key: account_key
           )
 
-        # Create the BlobService that is used to call the Blob service for the storage account
+        # Create the BlobService that represents the Blob service for the storage account
         blob_service = client.blob_client
         
         # Create a container called 'quickstartblobs'.
@@ -78,7 +78,7 @@ def run_sample
         puts "Temp file = " + full_path_to_file
         puts "\nUploading to Blob storage as blob" + local_file_name
 
-        # Upload the created file, use local_file_name for the blob name
+        # Upload the created file using local_file_name for the blob name
         blob_service.create_block_blob(container.name, local_file_name, full_path_to_file)
 
         # List the blobs in the container
