@@ -41,7 +41,7 @@ OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 $stdout.sync = true
 
 
-# Method that creates a test file in the 'Documents' folder.
+# Method that creates a test file in the 'Documents' folder or in the home directory on Linux.
 # This sample application creates a test file, uploads the test file to the Blob storage,
 # lists the blobs in the container, and downloads the file with a new name.
 def run_sample
@@ -51,7 +51,7 @@ def run_sample
 
     begin
 
-        # Setup a specific instance of an Azure::Storage::Client
+        # Create a BlobService object
         blob_client = Azure::Storage::Blob::BlobService.create(
             storage_account_name: account_name,
             storage_access_key: account_key
