@@ -32,10 +32,10 @@
 
 require 'openssl'
 require 'securerandom'
+require 'rbconfig'
 
 # Require the azure storage blob rubygem
 require 'azure/storage/blob'
-require 'rbconfig'
 
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 $stdout.sync = true
@@ -49,13 +49,16 @@ def run_sample
     account_key = 'accountkey'
     is_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
 
+    # Create a BlobService object
+    blob_client = Azure::Storage::Blob::BlobService 
+
     begin
 
         # Create a BlobService object
         blob_client = Azure::Storage::Blob::BlobService.create(
             storage_account_name: account_name,
             storage_access_key: account_key
-          )
+        )
 
         # Create a container called 'quickstartblobs'.
         container_name = 'quickstartblobs' + SecureRandom.uuid
@@ -87,11 +90,16 @@ def run_sample
         blob_client.create_block_blob(container.name, local_file_name, full_path_to_file)
 
         # List the blobs in the container
-        puts "\nList blobs in the container"
-        blobs = blob_client.list_blobs(container_name)
-        blobs.each do |blob|
-            puts "\tBlob name #{blob.name}"   
-        end  
+        puts "\nList blobs in the container following continuation token"
+        nextMarker = nil
+        loop do
+            blobs = blob_client.list_blobs(container_name, { marker: nextMarker })
+            blobs.each do |blob|
+                puts "\tBlob name #{blob.name}"
+            end
+            nextMarker = blobs.continuation_token
+            break unless nextMarker && !nextMarker.empty?
+        end
         
         # Download the blob(s).
         # Add '_DOWNLOADED' as prefix to '.txt' so you can see both files in Documents.
@@ -104,12 +112,13 @@ def run_sample
         puts "Sample finished running. Hit <any key>, to delete resources created by the sample and exit the application"
         readline()
 
+    rescue Exception => e
+        puts e.message
+    ensure
         # Clean up resources. This includes the container and the temp files
         blob_client.delete_container(container_name)
         File.delete(full_path_to_file)
-        File.delete(full_path_to_file2)    
-    rescue Exception => e
-        puts e.message
+        File.delete(full_path_to_file2)
     end
 end   
 
