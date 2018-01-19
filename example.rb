@@ -32,41 +32,49 @@
 
 require 'openssl'
 require 'securerandom'
+require 'rbconfig'
 
-# Require the azure storage rubygem
-require 'azure/storage'
+# Require the azure storage blob rubygem
+require 'azure/storage/blob'
 
 OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 $stdout.sync = true
 
 
-# Method that creates a test file in the 'Documents' folder.
+# Method that creates a test file in the 'Documents' folder or in the home directory on Linux.
 # This sample application creates a test file, uploads the test file to the Blob storage,
 # lists the blobs in the container, and downloads the file with a new name.
 def run_sample
     account_name = 'accountname'   
     account_key = 'accountkey'
-    
+    is_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
+
+    # Create a BlobService object
+    blob_client = Azure::Storage::Blob::BlobService 
+
     begin
 
-        # Setup a specific instance of an Azure::Storage::Client
-        client = Azure::Storage.client(
+        # Create a BlobService object
+        blob_client = Azure::Storage::Blob::BlobService.create(
             storage_account_name: account_name,
             storage_access_key: account_key
-          )
+        )
 
-        # Create the BlobService that represents the Blob service for the storage account
-        blob_service = client.blob_client
-        
         # Create a container called 'quickstartblobs'.
-        container_name = 'quickstartblobs'
-        container = blob_service.create_container(container_name)   
+        container_name = 'quickstartblobs' + SecureRandom.uuid
+        puts "Creating a container: " + container_name
+        container = blob_client.create_container(container_name)   
         
         # Set the permission so the blobs are public.
-        blob_service.set_container_acl(container_name, "container")
+        blob_client.set_container_acl(container_name, "container")
 
         # Create a file in Documents to test the upload and download.
-        local_path = File.expand_path("~/Documents")
+        if(is_windows)
+            local_path = File.expand_path("~/Documents")
+        else 
+            local_path = File.expand_path("~/")
+        end
+
         local_file_name = "QuickStart_" + SecureRandom.uuid + ".txt"
         full_path_to_file = File.join(local_path, local_file_name)
 
@@ -75,36 +83,42 @@ def run_sample
         file.write("Hello, World!")
         file.close()
    
-        puts "Temp file = " + full_path_to_file
-        puts "\nUploading to Blob storage as blob" + local_file_name
+        puts "\nCreated a temp file: " + full_path_to_file
+        puts "\nUploading to Blob storage as blob: " + local_file_name
 
         # Upload the created file using local_file_name for the blob name
-        blob_service.create_block_blob(container.name, local_file_name, full_path_to_file)
+        blob_client.create_block_blob(container.name, local_file_name, full_path_to_file)
 
         # List the blobs in the container
-        puts "\n List blobs in the container"
-        blobs = blob_service.list_blobs(container_name)
-        blobs.each do |blob|
-            puts "\t Blob name #{blob.name}"   
-        end  
+        puts "\nList blobs in the container following continuation token"
+        nextMarker = nil
+        loop do
+            blobs = blob_client.list_blobs(container_name, { marker: nextMarker })
+            blobs.each do |blob|
+                puts "\tBlob name #{blob.name}"
+            end
+            nextMarker = blobs.continuation_token
+            break unless nextMarker && !nextMarker.empty?
+        end
         
         # Download the blob(s).
         # Add '_DOWNLOADED' as prefix to '.txt' so you can see both files in Documents.
         full_path_to_file2 = File.join(local_path, local_file_name.gsub('.txt', '_DOWNLOADED.txt'))
         
-        puts "\n Downloading blob to " + full_path_to_file2
-        blob, content = blob_service.get_blob(container_name,local_file_name)
+        puts "\nDownloading blob to " + full_path_to_file2
+        blob, content = blob_client.get_blob(container_name,local_file_name)
         File.open(full_path_to_file2,"wb") {|f| f.write(content)}
 
         puts "Sample finished running. Hit <any key>, to delete resources created by the sample and exit the application"
         readline()
 
-        # Clean up resources. This includes the container and the temp files
-        blob_service.delete_container(container_name)
-        File.delete(full_path_to_file)
-        File.delete(full_path_to_file2)    
     rescue Exception => e
         puts e.message
+    ensure
+        # Clean up resources. This includes the container and the temp files
+        blob_client.delete_container(container_name)
+        File.delete(full_path_to_file)
+        File.delete(full_path_to_file2)
     end
 end   
 
