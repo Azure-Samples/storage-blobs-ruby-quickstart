@@ -45,10 +45,11 @@ First, create a new general-purpose storage account to use for this quickstart.
 After your storage account is created, it is pinned to the dashboard. Click on it to open it. Under SETTINGS, click **Access keys**. Select a key and copy the CONNECTION STRING to the clipboard, then paste it into Notepad for later use.
 
 ## Configure your storage connection string
-In the application, you must provide your storage account name and account key to create the `Client` instance for your application. Open the `example.rb` file from the Solution Explorer in your IDE. Replace the **accountname** and **accountkey** values with your account name and key. 
+In the application, you must provide your storage account name and account key to create the `BlobService` instance for your application. Open the `example.rb` file from the Solution Explorer in your IDE. Replace the **accountname** and **accountkey** values with your account name and key. 
 
 ```ruby
-client = Azure::Storage.client(storage_account_name: account_name, storage_access_key: account_key)
+    account_name = 'accountname'
+    account_key = 'accountkey'
 ```
 
 To run the application on a terminal or command prompt, Go to the `example.rb` file directory and run the following command: 
