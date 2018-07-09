@@ -87,7 +87,7 @@ def run_sample
         puts "\nUploading to Blob storage as blob: " + local_file_name
 
         # Upload the created file using local_file_name for the blob name
-        blob_client.create_block_blob(container.name, local_file_name, full_path_to_file)
+        blob_client.create_block_blob(container.name, local_file_name, IO.binread(full_path_to_file))
 
         # List the blobs in the container
         puts "\nList blobs in the container following continuation token"
