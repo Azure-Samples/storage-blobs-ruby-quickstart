@@ -30,21 +30,19 @@
 # Blob Service REST API - https://docs.microsoft.com/rest/api/storageservices/Blob-Service-REST-API
 # ----------------------------------------------------------------------------------------------------------
 
-require 'openssl'
-require 'securerandom'
-require 'rbconfig'
+require "openssl"
+require "securerandom"
+require "rbconfig"
 
 # Require the azure storage blob rubygem
-require 'azure/storage/blob'
+require "azure/storage/blob"
 
 $stdout.sync = true
 
 # This sample application creates a container in an Azure Blob Storage account,
 # uploads data to the container, lists the blobs in the container, and downloads a blob to a local file.
 def run_sample
-    account_name = 'accountname'
-    account_key = 'accountkey'
-    is_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
+    is_windows = (RbConfig::CONFIG["host_os"] =~ /mswin|mingw|cygwin/)
 
     # Create a BlobService object
     blob_client = Azure::Storage::Blob::BlobService 
@@ -52,24 +50,27 @@ def run_sample
     begin
 
         # Create a BlobService object
-        blob_client = Azure::Storage::Blob::BlobService.create(
+        account_name = "accountname"
+        account_key = "accountkey"
+
+            blob_client = Azure::Storage::Blob::BlobService.create(
             storage_account_name: account_name,
             storage_access_key: account_key
         )
 
-        # Create a container called 'quickstartblobs'
-        container_name = 'quickstartblobs' + SecureRandom.uuid
-        puts "Creating a container: " + container_name
+        # Create a container
+        container_name = "quickstartblobs" + SecureRandom.uuid
+        puts "\nCreating a container: " + container_name
         container = blob_client.create_container(container_name)
         
         # Set the permission so the blobs are public
         blob_client.set_container_acl(container_name, "container")
 
-        blob_name = "QuickStart_" + SecureRandom.uuid + ".txt"
-        blob_contents = "Hello, World!"
-
         # Create a new block blob containing 'Hello, World!'
-        blob_client.create_block_blob(container.name, blob_name, blob_contents)
+        blob_name = "QuickStart_" + SecureRandom.uuid + ".txt"
+        blob_data = "Hello, World!"
+        puts "\nCreating blob: " + blob_name
+        blob_client.create_block_blob(container.name, blob_name, blob_data)
 
         # List the blobs in the container
         puts "\nList blobs in the container following continuation token"
@@ -77,7 +78,7 @@ def run_sample
         loop do
             blobs = blob_client.list_blobs(container_name, { marker: nextMarker })
             blobs.each do |blob|
-                puts "\tBlob name #{blob.name}"
+                puts "\tBlob name: #{blob.name}"
             end
             nextMarker = blobs.continuation_token
             break unless nextMarker && !nextMarker.empty?
@@ -99,7 +100,7 @@ def run_sample
         blob, content = blob_client.get_blob(container_name, blob_name)
         File.open(full_path_to_file,"wb") {|f| f.write(content)}
 
-        puts "Sample finished running. Hit <any key>, to delete resources created by the sample and exit the application"
+        puts "\nPaused, press the Enter key to delete resources created by the sample and exit the application "
         readline()
 
     rescue Exception => e
