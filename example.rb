@@ -23,11 +23,11 @@
 
 # ---------------------------------------------------------------------------------------------------------
 # Documentation References:
-# Associated Article - https://docs.microsoft.com/en-us/azure/storage/blobs/storage-quickstart-blobs-ruby
-# What is a Storage Account - https://docs.microsoft.com/en-us/azure/storage/common/storage-create-storage-account
-# Getting Started with Blobs-https://docs.microsoft.com/en-us/azure/storage/blobs/storage-ruby-how-to-use-blob-storage
-# Blob Service Concepts - https://docs.microsoft.com/en-us/rest/api/storageservices/Blob-Service-Concepts
-# Blob Service REST API - https://docs.microsoft.com/en-us/rest/api/storageservices/Blob-Service-REST-API
+# Associated Article - https://docs.microsoft.com/azure/storage/blobs/storage-quickstart-blobs-ruby
+# What is a Storage Account - https://docs.microsoft.com/azure/storage/common/storage-create-storage-account
+# Getting Started with Blobs-https://docs.microsoft.com/azure/storage/blobs/storage-ruby-how-to-use-blob-storage
+# Blob Service Concepts - https://docs.microsoft.com/rest/api/storageservices/Blob-Service-Concepts
+# Blob Service REST API - https://docs.microsoft.com/rest/api/storageservices/Blob-Service-REST-API
 # ----------------------------------------------------------------------------------------------------------
 
 require 'openssl'
@@ -37,15 +37,12 @@ require 'rbconfig'
 # Require the azure storage blob rubygem
 require 'azure/storage/blob'
 
-OpenSSL::SSL::VERIFY_PEER = OpenSSL::SSL::VERIFY_NONE
 $stdout.sync = true
 
-
-# Method that creates a test file in the 'Documents' folder or in the home directory on Linux.
-# This sample application creates a test file, uploads the test file to the Blob storage,
-# lists the blobs in the container, and downloads the file with a new name.
+# This sample application creates a container in an Azure Blob Storage account,
+# uploads data to the container, lists the blobs in the container, and downloads a blob to a local file.
 def run_sample
-    account_name = 'accountname'   
+    account_name = 'accountname'
     account_key = 'accountkey'
     is_windows = (RbConfig::CONFIG['host_os'] =~ /mswin|mingw|cygwin/)
 
@@ -60,34 +57,19 @@ def run_sample
             storage_access_key: account_key
         )
 
-        # Create a container called 'quickstartblobs'.
+        # Create a container called 'quickstartblobs'
         container_name = 'quickstartblobs' + SecureRandom.uuid
         puts "Creating a container: " + container_name
-        container = blob_client.create_container(container_name)   
+        container = blob_client.create_container(container_name)
         
-        # Set the permission so the blobs are public.
+        # Set the permission so the blobs are public
         blob_client.set_container_acl(container_name, "container")
 
-        # Create a file in Documents to test the upload and download.
-        if(is_windows)
-            local_path = File.expand_path("~/Documents")
-        else 
-            local_path = File.expand_path("~/")
-        end
+        blob_name = "QuickStart_" + SecureRandom.uuid + ".txt"
+        blob_contents = "Hello, World!"
 
-        local_file_name = "QuickStart_" + SecureRandom.uuid + ".txt"
-        full_path_to_file = File.join(local_path, local_file_name)
-
-        # Write text to the file.
-        file = File.open(full_path_to_file,  'w')
-        file.write("Hello, World!")
-        file.close()
-   
-        puts "\nCreated a temp file: " + full_path_to_file
-        puts "\nUploading to Blob storage as blob: " + local_file_name
-
-        # Upload the created file using local_file_name for the blob name
-        blob_client.create_block_blob(container.name, local_file_name, full_path_to_file)
+        # Create a new block blob containing 'Hello, World!'
+        blob_client.create_block_blob(container.name, blob_name, blob_contents)
 
         # List the blobs in the container
         puts "\nList blobs in the container following continuation token"
@@ -100,14 +82,22 @@ def run_sample
             nextMarker = blobs.continuation_token
             break unless nextMarker && !nextMarker.empty?
         end
-        
-        # Download the blob(s).
-        # Add '_DOWNLOADED' as prefix to '.txt' so you can see both files in Documents.
-        full_path_to_file2 = File.join(local_path, local_file_name.gsub('.txt', '_DOWNLOADED.txt'))
-        
-        puts "\nDownloading blob to " + full_path_to_file2
-        blob, content = blob_client.get_blob(container_name,local_file_name)
-        File.open(full_path_to_file2,"wb") {|f| f.write(content)}
+
+        # Download the blob
+
+        # Set the path to the local folder for downloading
+        if(is_windows)
+            local_path = File.expand_path("~/Documents")
+        else 
+            local_path = File.expand_path("~/")
+        end
+
+        # Create the full path to the downloaded file
+        full_path_to_file = File.join(local_path, blob_name)
+
+        puts "\nDownloading blob to " + full_path_to_file
+        blob, content = blob_client.get_blob(container_name, blob_name)
+        File.open(full_path_to_file,"wb") {|f| f.write(content)}
 
         puts "Sample finished running. Hit <any key>, to delete resources created by the sample and exit the application"
         readline()
@@ -115,12 +105,11 @@ def run_sample
     rescue Exception => e
         puts e.message
     ensure
-        # Clean up resources. This includes the container and the temp files
+        # Clean up resources, including the container and the downloaded file
         blob_client.delete_container(container_name)
         File.delete(full_path_to_file)
-        File.delete(full_path_to_file2)
     end
-end   
+end
 
-# Main method.
+# Main method
 run_sample
